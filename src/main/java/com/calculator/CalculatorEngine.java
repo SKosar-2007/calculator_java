@@ -2,6 +2,8 @@ package com.calculator;
 
 public class CalculatorEngine {
 
+    private static final int MAX_DIGITS = 15;
+
     private double currentValue = 0;
     private double previousValue = 0;
     private String operator = "";
@@ -12,6 +14,10 @@ public class CalculatorEngine {
             currentValue = digit;
             newInput = false;
         } else {
+            String currentStr = formatRaw(currentValue);
+            if (currentStr.replace("-", "").replace(".", "").length() >= MAX_DIGITS) {
+                return;
+            }
             currentValue = currentValue * 10 + digit;
         }
     }
@@ -21,7 +27,6 @@ public class CalculatorEngine {
             currentValue = 0;
             newInput = false;
         }
-        // Decimal logic handled by display panel appending "."
     }
 
     public void setOperator(String op) {
@@ -54,6 +59,11 @@ public class CalculatorEngine {
                 }
                 break;
         }
+
+        if (Double.isNaN(currentValue)) {
+            currentValue = 0;
+        }
+
         operator = "";
         newInput = true;
     }
@@ -71,7 +81,14 @@ public class CalculatorEngine {
 
     public void backspace() {
         if (newInput) return;
-        currentValue = (long) currentValue / 10;
+        String raw = formatRaw(currentValue);
+        if (raw.length() <= 1 || (raw.length() == 2 && raw.startsWith("-"))) {
+            currentValue = 0;
+            newInput = true;
+        } else {
+            raw = raw.substring(0, raw.length() - 1);
+            currentValue = Double.parseDouble(raw);
+        }
     }
 
     public void negate() {
@@ -97,5 +114,12 @@ public class CalculatorEngine {
 
     public void setCurrentValue(double value) {
         currentValue = value;
+    }
+
+    private String formatRaw(double value) {
+        if (value == (long) value) {
+            return String.valueOf((long) value);
+        }
+        return String.valueOf(value);
     }
 }

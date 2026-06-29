@@ -4,6 +4,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class CalculatorFrame extends JFrame {
 
@@ -13,14 +15,17 @@ public class CalculatorFrame extends JFrame {
     private String displayString = "0";
     private boolean hasDecimal = false;
     private JButton activeOpButton = null;
+    private JLabel memoryIndicator;
 
     private static final Color BG_COLOR = new Color(30, 30, 30);
-    private static final Color BTN_COLOR = new Color(50, 50, 50);
     private static final Color NUM_COLOR = new Color(70, 70, 70);
+    private static final Color NUM_HOVER = new Color(90, 90, 90);
     private static final Color OP_COLOR = new Color(255, 149, 0);
+    private static final Color OP_HOVER = new Color(255, 170, 50);
+    private static final Color OP_ACTIVE = new Color(200, 110, 0);
     private static final Color MEM_COLOR = new Color(40, 40, 40);
+    private static final Color MEM_HOVER = new Color(55, 55, 55);
     private static final Color TEXT_WHITE = Color.WHITE;
-    private static final Color TEXT_ORANGE = Color.WHITE;
 
     public CalculatorFrame() {
         engine = new CalculatorEngine();
@@ -37,12 +42,22 @@ public class CalculatorFrame extends JFrame {
         mainPanel.setBackground(BG_COLOR);
         mainPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-        mainPanel.add(display, BorderLayout.NORTH);
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(BG_COLOR);
+        topPanel.add(display, BorderLayout.CENTER);
+
+        memoryIndicator = new JLabel(" ");
+        memoryIndicator.setFont(new Font("SansSerif", Font.PLAIN, 10));
+        memoryIndicator.setForeground(new Color(150, 150, 150));
+        memoryIndicator.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
+        topPanel.add(memoryIndicator, BorderLayout.NORTH);
+
+        mainPanel.add(topPanel, BorderLayout.NORTH);
         mainPanel.add(createButtonPanel(), BorderLayout.CENTER);
 
         add(mainPanel);
         pack();
-        setSize(320, 500);
+        setSize(320, 520);
         setLocationRelativeTo(null);
 
         setupKeyboardBindings();
@@ -54,54 +69,91 @@ public class CalculatorFrame extends JFrame {
         panel.setBackground(BG_COLOR);
 
         // Row 1: Memory
-        panel.add(createButton("MC", MEM_COLOR, TEXT_WHITE, e -> memoryClear()));
-        panel.add(createButton("MR", MEM_COLOR, TEXT_WHITE, e -> memoryRecall()));
-        panel.add(createButton("M+", MEM_COLOR, TEXT_WHITE, e -> memoryAdd()));
-        panel.add(createButton("M-", MEM_COLOR, TEXT_WHITE, e -> memorySubtract()));
+        panel.add(createMemButton("MC", e -> memoryClear()));
+        panel.add(createMemButton("MR", e -> memoryRecall()));
+        panel.add(createMemButton("M+", e -> memoryAdd()));
+        panel.add(createMemButton("M-", e -> memorySubtract()));
 
         // Row 2: Clear row
-        panel.add(createButton("MS", MEM_COLOR, TEXT_WHITE, e -> memoryStore()));
-        panel.add(createButton("C", OP_COLOR, TEXT_WHITE, e -> clearAll()));
-        panel.add(createButton("±", OP_COLOR, TEXT_WHITE, e -> negate()));
-        panel.add(createButton("%", OP_COLOR, TEXT_WHITE, e -> percent()));
+        panel.add(createMemButton("MS", e -> memoryStore()));
+        panel.add(createColorButton("C", OP_COLOR, OP_HOVER, e -> clearAll()));
+        panel.add(createColorButton("±", OP_COLOR, OP_HOVER, e -> negate()));
+        panel.add(createColorButton("%", OP_COLOR, OP_HOVER, e -> percent()));
 
         // Row 3
-        panel.add(createButton("7", NUM_COLOR, TEXT_WHITE, e -> inputDigit(7)));
-        panel.add(createButton("8", NUM_COLOR, TEXT_WHITE, e -> inputDigit(8)));
-        panel.add(createButton("9", NUM_COLOR, TEXT_WHITE, e -> inputDigit(9)));
-        panel.add(createButton("÷", OP_COLOR, TEXT_WHITE, e -> inputOperator("/")));
+        panel.add(createNumButton("7", e -> inputDigit(7)));
+        panel.add(createNumButton("8", e -> inputDigit(8)));
+        panel.add(createNumButton("9", e -> inputDigit(9)));
+        panel.add(createOpButton("÷", e -> inputOperator("/")));
 
         // Row 4
-        panel.add(createButton("4", NUM_COLOR, TEXT_WHITE, e -> inputDigit(4)));
-        panel.add(createButton("5", NUM_COLOR, TEXT_WHITE, e -> inputDigit(5)));
-        panel.add(createButton("6", NUM_COLOR, TEXT_WHITE, e -> inputDigit(6)));
-        panel.add(createButton("×", OP_COLOR, TEXT_WHITE, e -> inputOperator("*")));
+        panel.add(createNumButton("4", e -> inputDigit(4)));
+        panel.add(createNumButton("5", e -> inputDigit(5)));
+        panel.add(createNumButton("6", e -> inputDigit(6)));
+        panel.add(createOpButton("×", e -> inputOperator("*")));
 
         // Row 5
-        panel.add(createButton("1", NUM_COLOR, TEXT_WHITE, e -> inputDigit(1)));
-        panel.add(createButton("2", NUM_COLOR, TEXT_WHITE, e -> inputDigit(2)));
-        panel.add(createButton("3", NUM_COLOR, TEXT_WHITE, e -> inputDigit(3)));
-        panel.add(createButton("-", OP_COLOR, TEXT_WHITE, e -> inputOperator("-")));
+        panel.add(createNumButton("1", e -> inputDigit(1)));
+        panel.add(createNumButton("2", e -> inputDigit(2)));
+        panel.add(createNumButton("3", e -> inputDigit(3)));
+        panel.add(createOpButton("-", e -> inputOperator("-")));
 
-        // Row 6
-        panel.add(createButton("0", NUM_COLOR, TEXT_WHITE, e -> inputDigit(0)));
-        panel.add(createButton(".", NUM_COLOR, TEXT_WHITE, e -> inputDecimal()));
-        panel.add(createButton("=", OP_COLOR, TEXT_WHITE, e -> inputEquals()));
-        panel.add(createButton("+", OP_COLOR, TEXT_WHITE, e -> inputOperator("+")));
+        // Row 6: 0 spans 2 columns
+        panel.add(createNumButton("0", e -> inputDigit(0)));
+        panel.add(createNumButton(".", e -> inputDecimal()));
+        panel.add(createOpButton("=", e -> inputEquals()));
+        panel.add(createOpButton("+", e -> inputOperator("+")));
 
         return panel;
     }
 
-    private JButton createButton(String text, Color bg, Color fg, java.util.function.Consumer<ActionEvent> action) {
+    // --- Button Factories ---
+
+    private JButton createNumButton(String text, java.util.function.Consumer<ActionEvent> action) {
+        return createStyledButton(text, NUM_COLOR, NUM_HOVER, action);
+    }
+
+    private JButton createOpButton(String text, java.util.function.Consumer<ActionEvent> action) {
+        JButton btn = createStyledButton(text, OP_COLOR, OP_HOVER, action);
+        btn.setFont(new Font("SansSerif", Font.BOLD, 22));
+        return btn;
+    }
+
+    private JButton createMemButton(String text, java.util.function.Consumer<ActionEvent> action) {
+        return createStyledButton(text, MEM_COLOR, MEM_HOVER, action);
+    }
+
+    private JButton createColorButton(String text, Color bg, Color hover, java.util.function.Consumer<ActionEvent> action) {
+        return createStyledButton(text, bg, hover, action);
+    }
+
+    private JButton createStyledButton(String text, Color bg, Color hover, java.util.function.Consumer<ActionEvent> action) {
         JButton button = new JButton(text);
         button.setFont(new Font("SansSerif", Font.BOLD, 18));
         button.setBackground(bg);
-        button.setForeground(fg);
+        button.setForeground(TEXT_WHITE);
         button.setFocusPainted(false);
         button.setBorderPainted(false);
         button.setOpaque(true);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.addActionListener(e -> action.accept(e));
+
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (button != activeOpButton) {
+                    button.setBackground(hover);
+                }
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (button != activeOpButton) {
+                    button.setBackground(bg);
+                }
+            }
+        });
+
         return button;
     }
 
@@ -111,6 +163,8 @@ public class CalculatorFrame extends JFrame {
         clearActiveOpButton();
         engine.inputDigit(digit);
         if (displayString.equals("0") || displayString.equals("-0")) {
+            displayString = String.valueOf(digit);
+        } else if (displayString.equals("Cannot divide by zero")) {
             displayString = String.valueOf(digit);
         } else {
             displayString += digit;
@@ -122,13 +176,14 @@ public class CalculatorFrame extends JFrame {
     private void inputDecimal() {
         clearActiveOpButton();
         if (!hasDecimal) {
-            if (engine.isNewInput()) {
+            if (engine.isNewInput() || displayString.equals("Cannot divide by zero")) {
                 displayString = "0.";
                 engine.setCurrentValue(0);
             } else {
                 displayString += ".";
             }
             hasDecimal = true;
+            engine.inputDecimal();
             updateDisplay();
         }
     }
@@ -145,7 +200,7 @@ public class CalculatorFrame extends JFrame {
         clearActiveOpButton();
         engine.equals();
         displayString = formatValue(engine.getCurrentValue());
-        hasDecimal = false;
+        hasDecimal = displayString.contains(".");
         updateDisplay();
     }
 
@@ -168,7 +223,7 @@ public class CalculatorFrame extends JFrame {
         clearActiveOpButton();
         engine.percent();
         displayString = formatValue(engine.getCurrentValue());
-        hasDecimal = false;
+        hasDecimal = displayString.contains(".");
         updateDisplay();
     }
 
@@ -176,13 +231,12 @@ public class CalculatorFrame extends JFrame {
 
     private void memoryClear() {
         memory.memoryClear();
-        updateDisplay();
+        updateMemoryIndicator();
     }
 
     private void memoryRecall() {
         if (memory.hasMemory()) {
-            engine.setCurrentValue(memory.getMemoryValue());
-            engine.clear(); // reset so we start fresh with recalled value
+            engine.clear();
             engine.setCurrentValue(memory.getMemoryValue());
             displayString = formatValue(memory.getMemoryValue());
             hasDecimal = displayString.contains(".");
@@ -192,14 +246,21 @@ public class CalculatorFrame extends JFrame {
 
     private void memoryAdd() {
         memory.memoryAdd(engine.getCurrentValue());
+        updateMemoryIndicator();
     }
 
     private void memorySubtract() {
         memory.memorySubtract(engine.getCurrentValue());
+        updateMemoryIndicator();
     }
 
     private void memoryStore() {
         memory.memoryStore(engine.getCurrentValue());
+        updateMemoryIndicator();
+    }
+
+    private void updateMemoryIndicator() {
+        memoryIndicator.setText(memory.hasMemory() ? "M" : " ");
     }
 
     // --- Display ---
@@ -212,9 +273,14 @@ public class CalculatorFrame extends JFrame {
         if (Double.isInfinite(value)) {
             return "Cannot divide by zero";
         }
-        if (value == (long) value && !Double.isInfinite(value)) {
+        if (Double.isNaN(value)) {
+            return "Error";
+        }
+
+        if (value == (long) value && Math.abs(value) < 1e15) {
             return String.valueOf((long) value);
         }
+
         String formatted = String.valueOf(value);
         if (formatted.length() > 16) {
             formatted = String.format("%.10g", value);
@@ -231,13 +297,12 @@ public class CalculatorFrame extends JFrame {
             case "/" -> "÷";
             default -> "";
         };
-        Component[] components = ((JPanel) getContentPane().getComponent(0)).getComponents();
-        // Walk mainPanel -> buttonPanel
         JPanel mainPanel = (JPanel) getContentPane().getComponent(0);
+        JPanel topPanel = (JPanel) mainPanel.getComponent(0);
         JPanel buttonPanel = (JPanel) mainPanel.getComponent(1);
         for (Component c : buttonPanel.getComponents()) {
             if (c instanceof JButton btn && btn.getText().equals(symbol)) {
-                btn.setBackground(OP_COLOR.darker());
+                btn.setBackground(OP_ACTIVE);
                 activeOpButton = btn;
                 break;
             }
@@ -270,12 +335,12 @@ public class CalculatorFrame extends JFrame {
             });
         }
 
-        bindKey(inputMap, actionMap, KeyEvent.VK_ADD, "+", () -> inputOperator("+"));
-        bindKey(inputMap, actionMap, KeyEvent.VK_SUBTRACT, "-", () -> inputOperator("-"));
-        bindKey(inputMap, actionMap, KeyEvent.VK_MULTIPLY, "*", () -> inputOperator("*"));
-        bindKey(inputMap, actionMap, KeyEvent.VK_DIVIDE, "/", () -> inputOperator("/"));
-        bindKey(inputMap, actionMap, KeyEvent.VK_PLUS, "+_shift", () -> inputOperator("+"));
-        bindKey(inputMap, actionMap, KeyEvent.VK_EQUALS, "equals_shift", () -> inputEquals());
+        bindKey(inputMap, actionMap, KeyEvent.VK_ADD, "numpad_plus", () -> inputOperator("+"));
+        bindKey(inputMap, actionMap, KeyEvent.VK_SUBTRACT, "numpad_minus", () -> inputOperator("-"));
+        bindKey(inputMap, actionMap, KeyEvent.VK_MULTIPLY, "numpad_mul", () -> inputOperator("*"));
+        bindKey(inputMap, actionMap, KeyEvent.VK_DIVIDE, "numpad_div", () -> inputOperator("/"));
+        bindKey(inputMap, actionMap, KeyEvent.VK_PLUS, "plus", () -> inputOperator("+"));
+        bindKey(inputMap, actionMap, KeyEvent.VK_EQUALS, "equals", () -> inputEquals());
         bindKey(inputMap, actionMap, KeyEvent.VK_ENTER, "enter", () -> inputEquals());
         bindKey(inputMap, actionMap, KeyEvent.VK_BACK_SPACE, "backspace", () -> backspace());
         bindKey(inputMap, actionMap, KeyEvent.VK_ESCAPE, "escape", () -> clearAll());
@@ -296,13 +361,13 @@ public class CalculatorFrame extends JFrame {
 
     private void backspace() {
         clearActiveOpButton();
-        if (!displayString.equals("0") && displayString.length() > 1) {
-            displayString = displayString.substring(0, displayString.length() - 1);
-            if (displayString.equals("-")) displayString = "0";
-        } else {
-            displayString = "0";
+        if (displayString.equals("Cannot divide by zero") || displayString.equals("Error")) {
+            clearAll();
+            return;
         }
-        engine.setCurrentValue(Double.parseDouble(displayString));
+        engine.backspace();
+        displayString = formatValue(engine.getCurrentValue());
+        hasDecimal = displayString.contains(".");
         updateDisplay();
     }
 }
