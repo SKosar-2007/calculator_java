@@ -1,0 +1,99 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #1a1a1a;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.calculator {
+    width: 320px;
+    background: #1e1e1e;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.memory-indicator {
+    height: 16px;
+    font-size: 12px;
+    color: #969696;
+    padding-left: 4px;
+}
+
+.display {
+    background: #1e1e1e;
+    color: white;
+    font-size: 42px;
+    font-weight: bold;
+    text-align: right;
+    padding: 10px 15px;
+    min-height: 60px;
+    word-break: break-all;
+    line-height: 1.2;
+}
+
+.display.error {
+    font-size: 20px;
+    color: #ff6b6b;
+}
+
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.btn {
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    padding: 18px 0;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    color: white;
+    outline: none;
+}
+
+.btn:active {
+    transform: scale(0.95);
+}
+
+.btn.num {
+    background: #464646;
+}
+
+.btn.num:hover {
+    background: #5a5a5a;
+}
+
+.btn.op {
+    background: #ff9500;
+    font-size: 22px;
+}
+
+.btn.op:hover {
+    background: #ffaa33;
+}
+
+.btn.mem {
+    background: #2a2a2a;
+    font-size: 14px;
+}
+
+.btn.mem:hover {
+    background: #3a3a3a;
+}
+
+.btn.zero {
+    grid-column: span 1;
+}
