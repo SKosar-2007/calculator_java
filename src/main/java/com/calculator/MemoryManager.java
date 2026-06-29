@@ -11,7 +11,6 @@ public class MemoryManager {
     }
 
     public void memoryRecall() {
-        // Caller reads via getMemoryValue()
     }
 
     public void memoryAdd(double value) {

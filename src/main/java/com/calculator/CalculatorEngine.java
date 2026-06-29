@@ -104,10 +104,6 @@ public class CalculatorEngine {
         return currentValue;
     }
 
-    public double getPreviousValue() {
-        return previousValue;
-    }
-
     public String getOperator() {
         return operator;
     }
