@@ -1,2 +1,7 @@
-com/calculator/MemoryManager.class
+com/calculator/DisplayPanel.class
+com/calculator/CalculatorFrame.class
+com/calculator/CalculatorFrame$2.class
+com/calculator/CalculatorFrame$1.class
 com/calculator/CalculatorEngine.class
+com/calculator/MemoryManager.class
+com/calculator/App.class
